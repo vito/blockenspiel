@@ -529,7 +529,12 @@ module Blockenspiel
   begin
     require 'fiber'
     def self._current_context_id  # :nodoc:
-      ::Fiber.current.object_id
+      case ::RUBY_DESCRIPTION
+      when /^rubinius\s/
+        ::Rubinius::Fiber.current.object_id
+      else
+        ::Fiber.current.object_id
+      end
     end
   rescue ::LoadError
     def self._current_context_id  # :nodoc:
