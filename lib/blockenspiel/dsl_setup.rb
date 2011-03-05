@@ -181,7 +181,12 @@ module Blockenspiel
       end
       @_blockenspiel_methods[name_] = delegate_
       unless @_blockenspiel_module.public_method_defined?(name_)
-        @_blockenspiel_module.module_eval("def #{name_}(*params_, &block_); val_ = ::Blockenspiel._target_dispatch(self, :#{name_}, params_, block_); ::Blockenspiel::NO_VALUE.equal?(val_) ? super(*params_, &block_) : val_; end\n")
+        @_blockenspiel_module.module_eval do
+          define_method(name_.to_sym) do |*params_, &block_|
+            val_ = ::Blockenspiel._target_dispatch(self, name_.to_sym, params_, block_)
+            ::Blockenspiel::NO_VALUE.equal?(val_) ? super(*params_, &block_) : val_
+          end
+        end
       end
     end
     
@@ -268,7 +273,17 @@ module Blockenspiel
         unless name_.to_s =~ /^[_a-zA-Z]\w+$/
           raise ::NameError, "invalid attribute name #{name_.inspect}"
         end
-        module_eval("def #{name_}(value_=::Blockenspiel::NO_VALUE); ::Blockenspiel::NO_VALUE.equal?(value_) ? @#{name_} : @#{name_} = value_; end\n")
+        module_eval do
+          define_method(name_.to_sym) do |*args|
+            p args
+            if args.empty?
+              instance_variable_get("@#{name_}")
+            else
+              instance_variable_set("@#{name_}", args[0])
+            end
+          end
+        end
+
         alias_method("#{name_}=", name_)
         dsl_method(name_)
       end
