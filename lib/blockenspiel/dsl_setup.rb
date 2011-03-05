@@ -275,7 +275,6 @@ module Blockenspiel
         end
         module_eval do
           define_method(name_.to_sym) do |*args|
-            p args
             if args.empty?
               instance_variable_get("@#{name_}")
             else
